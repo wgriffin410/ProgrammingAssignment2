@@ -1,0 +1,77 @@
+**# Road Test for cachematrix.R #**
+
+R version 3.2.4 Revised (2016-03-16 r70336) -- "Very Secure Dishes"
+Copyright (C) 2016 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> ## The functions created in this assignment take advantage of R scoping rules to avoid costly
+> ## repeated computation of inverse matrices by staging to cache the value of the inverse.
+> 
+> ## This function creates a special "matrix" object that can cache its inverse.
+> 
+> makeCacheMatrix <- function(x = matrix()) {
++         imat <- NULL
++         set <- function(y) {
++                 x <<- y
++                 imat <<- NULL
++         }
++         get <- function() x
++         setInverse <- function(inverse) imat <<- inverse
++         getInverse <- function() imat
++         list(set = set,
++              get = get,
++              setInverse = setInverse,
++              getInverse = getInverse)
++ }
+> 
+> 
+> ## This function computes the inverse of the special "matrix" returned by makeCacheMatrix above.
+> 
+> cacheSolve <- function(x, ...) {
++         ## Return a matrix that is the inverse of 'x'
++         imat <- x$getInverse()
++         if(!is.null(imat)) {
++               message("getting cached data")
++               return(imat)
++         }
++         mat <- x$get()
++         imat <- solve(mat, ...)
++         x$setInverse(imat)
++         imat
++ }
+> test_matrix <- makeCacheMatrix(matrix(c(2,3,2,1,2,1,1,1,2),3,3))
+> test_matrix$get()
+     [,1] [,2] [,3]
+[1,]    2    1    1
+[2,]    3    2    1
+[3,]    2    1    2
+> test_matrix$getInverse()
+NULL
+> cacheSolve(test_matrix)
+     [,1] [,2] [,3]
+[1,]    3   -1   -1
+[2,]   -4    2    1
+[3,]   -1    0    1
+> cacheSolve(test_matrix)
+getting cached data
+     [,1] [,2] [,3]
+[1,]    3   -1   -1
+[2,]   -4    2    1
+[3,]   -1    0    1
+> 
